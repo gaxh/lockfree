@@ -53,7 +53,8 @@ public:
                 node->elem.~ElementType();
             }
 
-            node->has_elem.std::atomic_bool::~atomic_bool();
+            using ATOMIC_BOOL = std::atomic_bool;
+            node->has_elem.~ATOMIC_BOOL();
         }
         free(m_pool);
     }
@@ -127,7 +128,7 @@ private:
     ElementNode *m_pool;
 
     size_t Index(size_t index) {
-        static_assert(Capacity > (size_t)0);
+        static_assert(Capacity > (size_t)0, "capacity must > 0");
         return index % Capacity;
     }
 
