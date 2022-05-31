@@ -3,11 +3,18 @@
 #include <thread>
 #include <vector>
 #include <assert.h>
+#include <signal.h>
 
 struct Element {
     unsigned long long value = 0;
     std::string tag;
 };
+
+static volatile int stop = 0;
+
+static void sig_handler(int sig) {
+    stop = 1;
+}
 
 int main() {
 
@@ -18,9 +25,12 @@ int main() {
 
     std::atomic<unsigned long long> push_counter(1);
 
+    signal(SIGINT, sig_handler);
+    signal(SIGTERM, sig_handler);
+    
     for(int i = 0; i < 1; ++i) {
         pushers.emplace_back( new std::thread([&q, &push_counter]() {
-                    for(;;) {
+                    for(;!stop;) {
                         unsigned long long v = push_counter.fetch_add(1);
                         Element e{v, "__TAG__"};
 
@@ -35,7 +45,7 @@ int main() {
     for(int i = 0; i < 1; ++i) {
         popers.emplace_back( new std::thread([&q]() {
                     unsigned long long last_value = (unsigned long long)0;
-                    for(;;) {
+                    for(;!stop;) {
                         Element e;
 
                         bool ok;
